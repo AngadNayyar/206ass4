@@ -34,12 +34,8 @@ import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.media.Media;
 import uk.co.caprica.vlcj.player.media.callback.nonseekable.FileInputStreamMedia;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.JSlider;
 
-public class MainApp {
+public class MainApp1 {
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
 	private final JFrame frame;
 	JFileChooser fileChooser;
@@ -58,11 +54,11 @@ public class MainApp {
 	}
 	
 	
-	private MainApp(){
+	private MainApp1(){
 		//Sets Frame
 		frame = new JFrame("VIDIVOX Trailer Editor");
 		frame.setLocation(0, 0);
-        frame.setSize(1143, 633);
+        frame.setSize(1050, 540);
         frame.setMinimumSize(new Dimension(320,180));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
@@ -82,6 +78,7 @@ public class MainApp {
         //Adds panels on the mainPanel for the buttons to be placed
         JPanel southPanel = new JPanel();
 		mainPanel.add(southPanel, BorderLayout.SOUTH);
+		southPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         
 		JPanel northPanel = new JPanel();
 		mainPanel.add(northPanel, BorderLayout.NORTH);
@@ -96,7 +93,7 @@ public class MainApp {
 		labelW.setVisible(false);
         
 		//Calls the appropriate methods to open JFileChooser and start the video if a file is chosen
-        JButton btnOpenVideo = new JButton("Open Video");
+        JButton btnOpenVideo = new JButton("Open");
         btnOpenVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				InitialiseFC(1);
@@ -133,7 +130,7 @@ public class MainApp {
 		northPanel.add(btnSelectAudio);
 		
 		//Opens a new GuiTts window
-		JButton btnCreateAudio = new JButton("Create audio");
+		JButton btnCreateAudio = new JButton("Create");
 		btnCreateAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				GuiTts tts = new GuiTts();
@@ -142,36 +139,34 @@ public class MainApp {
 		});
 		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		northPanel.add(btnCreateAudio);		
-		GridBagLayout gbl_southPanel = new GridBagLayout();
-		gbl_southPanel.columnWidths = new int[]{40, 0, 40, 40, 40, 81, 73, 91, 40, 0, 0, 0, 0};
-		gbl_southPanel.rowHeights = new int[]{30, 41, 0};
-		gbl_southPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_southPanel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		southPanel.setLayout(gbl_southPanel);
-						
-						JLabel lblTime = new JLabel("00:00");
-						GridBagConstraints gbc_lblTime = new GridBagConstraints();
-						gbc_lblTime.insets = new Insets(0, 0, 5, 5);
-						gbc_lblTime.gridx = 1;
-						gbc_lblTime.gridy = 0;
-						southPanel.add(lblTime, gbc_lblTime);
-						
-						JSlider sliderVideo = new JSlider();
-						GridBagConstraints gbc_sliderVideo = new GridBagConstraints();
-						gbc_sliderVideo.fill = GridBagConstraints.HORIZONTAL;
-						gbc_sliderVideo.gridwidth = 10;
-						gbc_sliderVideo.insets = new Insets(0, 0, 5, 0);
-						gbc_sliderVideo.gridx = 2;
-						gbc_sliderVideo.gridy = 0;
-						southPanel.add(sliderVideo, gbc_sliderVideo);
-		
-		//Mute using built in function.
-		JButton btnMute = new JButton("Mute");
-		btnMute.addActionListener(new ActionListener() {
+
+		//Create an instance of VideoWorker (swingworker) to rewind the video.
+		JButton btnRwd = new JButton("<<");
+		btnRwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				video.mute();
+				allowRewind = true;
+				if (!video.isMute()){
+					video.mute();
+				}
+				VideoWorker v = new VideoWorker(video);
+				v.execute();
 			}
 		});
+		southPanel.add(btnRwd);
+
+		
+		//Replay resumes the video to normal play
+		JButton btnPlay = new JButton("Play");
+		btnPlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				allowRewind = false;
+				if (video.isMute()){
+					video.mute();
+				}
+				video.setRate(1);
+			}
+		});
+		southPanel.add(btnPlay);
 		
 		//Forward works by setting the rate to 4x the normal rate of play
 		JButton btnFwd = new JButton(">>");
@@ -184,71 +179,16 @@ public class MainApp {
 				video.setRate(4);
 			}
 		});
+		southPanel.add(btnFwd);
 		
-				
-				//Replay resumes the video to normal play
-				JButton btnPlay = new JButton("Play");
-				btnPlay.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						allowRewind = false;
-						if (video.isMute()){
-							video.mute();
-						}
-						video.setRate(1);
-					}
-				});
-				
-						//Create an instance of VideoWorker (swingworker) to rewind the video.
-						JButton btnRwd = new JButton("<<");
-						btnRwd.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								allowRewind = true;
-								if (!video.isMute()){
-									video.mute();
-								}
-								VideoWorker v = new VideoWorker(video);
-								v.execute();
-							}
-						});
-						GridBagConstraints gbc_btnRwd = new GridBagConstraints();
-						gbc_btnRwd.anchor = GridBagConstraints.NORTHWEST;
-						gbc_btnRwd.insets = new Insets(0, 0, 0, 5);
-						gbc_btnRwd.gridx = 2;
-						gbc_btnRwd.gridy = 1;
-						southPanel.add(btnRwd, gbc_btnRwd);
-				GridBagConstraints gbc_btnPlay = new GridBagConstraints();
-				gbc_btnPlay.anchor = GridBagConstraints.NORTHWEST;
-				gbc_btnPlay.insets = new Insets(0, 0, 0, 5);
-				gbc_btnPlay.gridx = 3;
-				gbc_btnPlay.gridy = 1;
-				southPanel.add(btnPlay, gbc_btnPlay);
-		GridBagConstraints gbc_btnFwd = new GridBagConstraints();
-		gbc_btnFwd.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnFwd.insets = new Insets(0, 0, 0, 5);
-		gbc_btnFwd.gridx = 4;
-		gbc_btnFwd.gridy = 1;
-		southPanel.add(btnFwd, gbc_btnFwd);
-		GridBagConstraints gbc_btnMute = new GridBagConstraints();
-		gbc_btnMute.insets = new Insets(0, 0, 0, 5);
-		gbc_btnMute.anchor = GridBagConstraints.NORTHWEST;
-		gbc_btnMute.gridx = 5;
-		gbc_btnMute.gridy = 1;
-		southPanel.add(btnMute, gbc_btnMute);
-		
-		JLabel lblVolume = new JLabel("Volume");
-		GridBagConstraints gbc_lblVolume = new GridBagConstraints();
-		gbc_lblVolume.insets = new Insets(0, 0, 0, 5);
-		gbc_lblVolume.gridx = 7;
-		gbc_lblVolume.gridy = 1;
-		southPanel.add(lblVolume, gbc_lblVolume);
-		
-		JSlider sliderVolume = new JSlider();
-		GridBagConstraints gbc_sliderVolume = new GridBagConstraints();
-		gbc_sliderVolume.insets = new Insets(0, 0, 0, 5);
-		gbc_sliderVolume.gridwidth = 3;
-		gbc_sliderVolume.gridx = 8;
-		gbc_sliderVolume.gridy = 1;
-		southPanel.add(sliderVolume, gbc_sliderVolume);
+		//Mute using built in function.
+		JButton btnMute = new JButton("Mute");
+		btnMute.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				video.mute();
+			}
+		});
+		southPanel.add(btnMute);
         
         
         //End of GUI Components
