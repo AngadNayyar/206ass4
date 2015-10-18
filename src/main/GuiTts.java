@@ -169,7 +169,7 @@ public class GuiTts extends JFrame {
 		btnSaveAudio.setBounds(222, 169, 128, 48);
 		contentPane.add(btnSaveAudio);
 		
-		//Closes the gui window and returns to the main application
+		//Closes the GUI window and returns to the main application
 		JButton btnCancelTTS = new JButton("Cancel");
 		btnCancelTTS.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

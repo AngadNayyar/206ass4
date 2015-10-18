@@ -133,7 +133,7 @@ public class MainApp1 {
 		JButton btnCreateAudio = new JButton("Create");
 		btnCreateAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				GuiTts tts = new GuiTts();
+				GuiTts1 tts = new GuiTts1();
                 tts.setVisible(true);     
 			}
 		});

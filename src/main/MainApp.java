@@ -24,6 +24,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -38,6 +41,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.JSlider;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MainApp {
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
@@ -46,6 +51,7 @@ public class MainApp {
 	String fileLoc = null;
 	String vidLoc= "empty";
     private boolean allowRewind = true;
+	private Timer timeUpdate;
 	
 	public static void main(String[] args) {
 		new NativeDiscovery().discover();
@@ -63,7 +69,7 @@ public class MainApp {
 		frame = new JFrame("VIDIVOX Trailer Editor");
 		frame.setLocation(0, 0);
         frame.setSize(1143, 633);
-        frame.setMinimumSize(new Dimension(320,180));
+        frame.setMinimumSize(new Dimension(800,195));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         frame.getContentPane().setLayout(new CardLayout(0, 0));
@@ -149,22 +155,65 @@ public class MainApp {
 		gbl_southPanel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		southPanel.setLayout(gbl_southPanel);
 						
-						JLabel lblTime = new JLabel("00:00");
-						GridBagConstraints gbc_lblTime = new GridBagConstraints();
-						gbc_lblTime.insets = new Insets(0, 0, 5, 5);
-						gbc_lblTime.gridx = 1;
-						gbc_lblTime.gridy = 0;
-						southPanel.add(lblTime, gbc_lblTime);
-						
-						JSlider sliderVideo = new JSlider();
-						GridBagConstraints gbc_sliderVideo = new GridBagConstraints();
-						gbc_sliderVideo.fill = GridBagConstraints.HORIZONTAL;
-						gbc_sliderVideo.gridwidth = 10;
-						gbc_sliderVideo.insets = new Insets(0, 0, 5, 0);
-						gbc_sliderVideo.gridx = 2;
-						gbc_sliderVideo.gridy = 0;
-						southPanel.add(sliderVideo, gbc_sliderVideo);
+		JLabel lblTime = new JLabel("00:00");
+		GridBagConstraints gbc_lblTime = new GridBagConstraints();
+		gbc_lblTime.insets = new Insets(0, 0, 5, 5);
+		gbc_lblTime.gridx = 1;
+		gbc_lblTime.gridy = 0;
+		southPanel.add(lblTime, gbc_lblTime);
 		
+		JSlider sliderVideo = new JSlider();
+		sliderVideo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				video.pause();
+				timeUpdate.stop();
+			}
+			@Override
+			public void mouseReleased(MouseEvent arg) {
+				float sliderVideoTime = sliderVideo.getValue()/5000.0f;
+				video.setPosition(sliderVideoTime);
+				video.play();
+				timeUpdate.restart();
+			}
+		});
+		GridBagConstraints gbc_sliderVideo = new GridBagConstraints();
+		gbc_sliderVideo.fill = GridBagConstraints.HORIZONTAL;
+		gbc_sliderVideo.gridwidth = 10;
+		gbc_sliderVideo.insets = new Insets(0, 0, 5, 0);
+		gbc_sliderVideo.gridx = 2;
+		gbc_sliderVideo.gridy = 0;
+		sliderVideo.setValue(0);
+		sliderVideo.setMaximum(5000);
+		southPanel.add(sliderVideo, gbc_sliderVideo);
+		
+		//The timer below checks the elapsed video time and updates the slider every 200ms
+		timeUpdate = new Timer(200, new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+				int min;
+				int sec;
+				String minString;
+				String secString;
+				
+				min = (int) (video.getTime()/60000); //Get video time in minutes
+				sec = (int) ((video.getTime()/1000)%60); //Get video time in seconds
+				minString = "" + min;
+				if (min < 10){
+					minString = "0" + min;
+				}
+				secString = "" + sec;
+				if (sec < 10){
+					secString = "0" + sec;
+				}
+				String timeMinSec = minString + ":" + secString;
+				lblTime.setText(timeMinSec);	
+				sliderVideo.setValue((int) (video.getPosition() * 5000.0f));
+			}
+		});
+		timeUpdate.start();
+				
+
 		//Mute using built in function.
 		JButton btnMute = new JButton("Mute");
 		btnMute.addActionListener(new ActionListener() {
@@ -181,47 +230,54 @@ public class MainApp {
 				if (!video.isMute()){
 					video.mute();
 				}
+				if(!video.isPlaying()){
+					video.pause();
+				}
 				video.setRate(4);
 			}
 		});
 		
 				
-				//Replay resumes the video to normal play
-				JButton btnPlay = new JButton("Play");
-				btnPlay.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						allowRewind = false;
-						if (video.isMute()){
-							video.mute();
-						}
-						video.setRate(1);
-					}
-				});
+		//Replay resumes the video to normal play
+		JButton btnPlay = new JButton("Play");
+		btnPlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				allowRewind = false;
+				if (video.isMute()){
+					video.mute();
+				}
+				video.play();
+				video.setRate(1);
+			}
+		});
 				
-						//Create an instance of VideoWorker (swingworker) to rewind the video.
-						JButton btnRwd = new JButton("<<");
-						btnRwd.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								allowRewind = true;
-								if (!video.isMute()){
-									video.mute();
-								}
-								VideoWorker v = new VideoWorker(video);
-								v.execute();
-							}
-						});
-						GridBagConstraints gbc_btnRwd = new GridBagConstraints();
-						gbc_btnRwd.anchor = GridBagConstraints.NORTHWEST;
-						gbc_btnRwd.insets = new Insets(0, 0, 0, 5);
-						gbc_btnRwd.gridx = 2;
-						gbc_btnRwd.gridy = 1;
-						southPanel.add(btnRwd, gbc_btnRwd);
-				GridBagConstraints gbc_btnPlay = new GridBagConstraints();
-				gbc_btnPlay.anchor = GridBagConstraints.NORTHWEST;
-				gbc_btnPlay.insets = new Insets(0, 0, 0, 5);
-				gbc_btnPlay.gridx = 3;
-				gbc_btnPlay.gridy = 1;
-				southPanel.add(btnPlay, gbc_btnPlay);
+		//Create an instance of VideoWorker (swingworker) to rewind the video.
+		JButton btnRwd = new JButton("<<");
+		btnRwd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				allowRewind = true;
+				if( video.isPlaying()){
+					video.pause();
+				}
+				if (!video.isMute()){
+					video.mute();
+				}
+				VideoWorker v = new VideoWorker(video);
+				v.execute();
+			}
+		});
+		GridBagConstraints gbc_btnRwd = new GridBagConstraints();
+		gbc_btnRwd.anchor = GridBagConstraints.NORTHWEST;
+		gbc_btnRwd.insets = new Insets(0, 0, 0, 5);
+		gbc_btnRwd.gridx = 2;
+		gbc_btnRwd.gridy = 1;
+		southPanel.add(btnRwd, gbc_btnRwd);
+		GridBagConstraints gbc_btnPlay = new GridBagConstraints();
+		gbc_btnPlay.anchor = GridBagConstraints.NORTHWEST;
+		gbc_btnPlay.insets = new Insets(0, 0, 0, 5);
+		gbc_btnPlay.gridx = 3;
+		gbc_btnPlay.gridy = 1;
+		southPanel.add(btnPlay, gbc_btnPlay);
 		GridBagConstraints gbc_btnFwd = new GridBagConstraints();
 		gbc_btnFwd.anchor = GridBagConstraints.NORTHWEST;
 		gbc_btnFwd.insets = new Insets(0, 0, 0, 5);
@@ -248,6 +304,13 @@ public class MainApp {
 		gbc_sliderVolume.gridwidth = 3;
 		gbc_sliderVolume.gridx = 8;
 		gbc_sliderVolume.gridy = 1;
+		sliderVolume.setValue(100);
+		sliderVolume.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg) {
+				int volume = sliderVolume.getValue();	
+				video.setVolume(volume);
+			}
+		});
 		southPanel.add(sliderVolume, gbc_sliderVolume);
         
         
@@ -321,7 +384,6 @@ public class MainApp {
 	public class VideoWorker extends SwingWorker<Void, Integer>{
 
 		private EmbeddedMediaPlayer vid;
-		private int fOrB;
 
 		public VideoWorker(EmbeddedMediaPlayer vid){
 			this.vid = vid;
@@ -331,6 +393,11 @@ public class MainApp {
 		protected Void doInBackground() throws Exception {
 			while(allowRewind){
 				vid.skip(-10);
+				try {
+					Thread.sleep(1);	//Slight delay to prevent big jumps
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 			return null;
 		}
