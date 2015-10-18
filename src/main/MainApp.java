@@ -43,6 +43,7 @@ import java.awt.Insets;
 import javax.swing.JSlider;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JCheckBox;
 
 public class MainApp {
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
@@ -89,6 +90,11 @@ public class MainApp {
         JPanel southPanel = new JPanel();
 		mainPanel.add(southPanel, BorderLayout.SOUTH);
         
+		
+		JPanel eastPanel = new JPanel();
+		mainPanel.add(eastPanel, BorderLayout.EAST);
+		eastPanel.setVisible(false);
+		
 		JPanel northPanel = new JPanel();
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		northPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -100,13 +106,13 @@ public class MainApp {
 		labelW.setForeground(Color.RED);
 		northPanel.add(labelW);
 		labelW.setVisible(false);
-        
+		
 		//Calls the appropriate methods to open JFileChooser and start the video if a file is chosen
         JButton btnOpenVideo = new JButton("Open Video");
         btnOpenVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				InitialiseFC(1);
-				boolean t =ChooseFile();
+				boolean t = ChooseFile();
 				if (t==true){
 					StartMedia();
 					labelW.setVisible(false);
@@ -127,19 +133,18 @@ public class MainApp {
 				} else {
 					labelW.setVisible(false);
 					InitialiseFC(0); 
-					boolean t =ChooseFile();
+					boolean t = ChooseFile();
 					if (t==true){
-						AddAudio();
+						eastPanel.setVisible(true);
 					}
 				}
-				
 			}
 		});
 		btnSelectAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		northPanel.add(btnSelectAudio);
 		
 		//Opens a new GuiTts window
-		JButton btnCreateAudio = new JButton("Create audio");
+		JButton btnCreateAudio = new JButton("Create Audio");
 		btnCreateAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				GuiTts tts = new GuiTts();
@@ -148,6 +153,45 @@ public class MainApp {
 		});
 		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		northPanel.add(btnCreateAudio);		
+		GridBagLayout gbl_eastPanel = new GridBagLayout();
+		gbl_eastPanel.columnWidths = new int[]{5, 125, 5};
+		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_eastPanel.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		eastPanel.setLayout(gbl_eastPanel);
+		
+		JButton btnPlayAudio = new JButton("Play Audio");
+		btnPlayAudio.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		GridBagConstraints gbc_btnPlayAudio = new GridBagConstraints();
+		gbc_btnPlayAudio.insets = new Insets(0, 0, 5, 0);
+		gbc_btnPlayAudio.anchor = GridBagConstraints.NORTH;
+		gbc_btnPlayAudio.gridx = 1;
+		gbc_btnPlayAudio.gridy = 1;
+		eastPanel.add(btnPlayAudio, gbc_btnPlayAudio);
+		
+		JButton btnAddToCurrent = new JButton("Add to current time");
+		GridBagConstraints gbc_btnAddToCurrent = new GridBagConstraints();
+		gbc_btnAddToCurrent.insets = new Insets(0, 0, 5, 0);
+		gbc_btnAddToCurrent.gridx = 1;
+		gbc_btnAddToCurrent.gridy = 3;
+		eastPanel.add(btnAddToCurrent, gbc_btnAddToCurrent);
+		
+		JButton btnAddToStart = new JButton("Add to start");
+		GridBagConstraints gbc_btnAddToStart = new GridBagConstraints();
+		gbc_btnAddToStart.insets = new Insets(0, 0, 5, 0);
+		gbc_btnAddToStart.gridx = 1;
+		gbc_btnAddToStart.gridy = 5;
+		eastPanel.add(btnAddToStart, gbc_btnAddToStart);
+		
+		JCheckBox chckbxReplaceAudio = new JCheckBox("Replace audio");
+		GridBagConstraints gbc_chckbxReplaceAudio = new GridBagConstraints();
+		gbc_chckbxReplaceAudio.gridx = 1;
+		gbc_chckbxReplaceAudio.gridy = 7;
+		eastPanel.add(chckbxReplaceAudio, gbc_chckbxReplaceAudio);
+		
 		GridBagLayout gbl_southPanel = new GridBagLayout();
 		gbl_southPanel.columnWidths = new int[]{40, 0, 40, 40, 40, 81, 73, 91, 40, 0, 0, 0, 0};
 		gbl_southPanel.rowHeights = new int[]{30, 41, 0};
@@ -163,6 +207,15 @@ public class MainApp {
 		southPanel.add(lblTime, gbc_lblTime);
 		
 		JSlider sliderVideo = new JSlider();
+		/*sliderVideo.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent arg) {
+				if (sliderVideo.getValueIsAdjusting()){
+					float sliderVideoTime = sliderVideo.getValue()/5000.0f;
+					video.setPosition(sliderVideoTime);
+				}
+			}
+		});*/
 		sliderVideo.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -246,8 +299,11 @@ public class MainApp {
 				if (video.isMute()){
 					video.mute();
 				}
-				video.play();
-				video.setRate(1);
+				if(video.getRate() > 1){
+					video.setRate(1);
+				} else {
+				video.pause();
+				}
 			}
 		});
 				
@@ -256,6 +312,7 @@ public class MainApp {
 		btnRwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				allowRewind = true;
+				video.setRate(1);
 				if( video.isPlaying()){
 					video.pause();
 				}
@@ -360,7 +417,7 @@ public class MainApp {
 	}
 	
 	//Adds audio to the start of the video file using ffmpeg, and plays the created video
-	private void AddAudio(){
+	private void MergeVideo(){
 		String audioLoc = fileLoc;
 		String cmd = "ffmpeg -i "+ vidLoc +" -i "+ audioLoc +" -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4" ;
 		
@@ -394,7 +451,7 @@ public class MainApp {
 			while(allowRewind){
 				vid.skip(-10);
 				try {
-					Thread.sleep(1);	//Slight delay to prevent big jumps
+					Thread.sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
