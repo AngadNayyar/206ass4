@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import javax.swing.SwingWorker;
 
-class ProcessBuilderWorker extends SwingWorker<Void,Integer>{
+class ProcessBuilderWorker extends SwingWorker<Void,Void>{
 	
 	private String cmd;
 	

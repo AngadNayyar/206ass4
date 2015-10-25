@@ -54,6 +54,11 @@ public class MainApp {
 	String vidLoc= "empty";
     //private boolean allowRewind = true;
 	private Timer timeUpdate;
+	private int currentTime;
+	private File fileVideo;
+	private File fileAudio;
+	private boolean overwrite;
+	private boolean addToCurrentTime;
 	
 	public static void main(String[] args) {
 		new NativeDiscovery().discover();
@@ -111,10 +116,12 @@ public class MainApp {
         JButton btnOpenVideo = new JButton("Open Video");
         btnOpenVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				File tempFile;
 				InitialiseFC(1);
-				boolean t = ChooseFile();
-				if (t==true){
-					StartMedia();
+				tempFile = ChooseFile();
+				if (tempFile != null){
+					fileVideo = tempFile;
+					mediaPlayerComponent.getMediaPlayer().playMedia(fileVideo.getAbsolutePath());
 					labelW.setVisible(false);
 				}
 				
@@ -124,9 +131,9 @@ public class MainApp {
         northPanel.add(btnOpenVideo);
 		GridBagLayout gbl_eastPanel = new GridBagLayout();
 		gbl_eastPanel.columnWidths = new int[]{5, 125, 5};
-		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		gbl_eastPanel.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		eastPanel.setLayout(gbl_eastPanel);
 		
 		JButton btnPlayAudio = new JButton("Play Audio");
@@ -160,13 +167,15 @@ public class MainApp {
 		eastPanel.add(btnSelectAudio, gbc_btnSelectAudio);
 		btnSelectAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (vidLoc.equals("empty")){
+				File tempFile;
+				if (fileVideo == null){
 					labelW.setVisible(true);
 				} else {
 					labelW.setVisible(false);
 					InitialiseFC(0); 
-					boolean t = ChooseFile();
-					if (t==true){
+					tempFile = ChooseFile();
+					if (tempFile != null){
+						fileAudio = tempFile;
 						//eastPanel.setVisible(true);
 					}
 				}
@@ -180,25 +189,58 @@ public class MainApp {
 		gbc_btnPlayAudio.gridy = 2;
 		eastPanel.add(btnPlayAudio, gbc_btnPlayAudio);
 		
-		JButton btnAddToCurrent = new JButton("Add to current time");
-		GridBagConstraints gbc_btnAddToCurrent = new GridBagConstraints();
-		gbc_btnAddToCurrent.insets = new Insets(0, 0, 5, 0);
-		gbc_btnAddToCurrent.gridx = 1;
-		gbc_btnAddToCurrent.gridy = 4;
-		eastPanel.add(btnAddToCurrent, gbc_btnAddToCurrent);
+		JButton btnPreview = new JButton("Preview");
+		btnPreview.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int mergeTime = 0;
+				if (addToCurrentTime){
+					mergeTime = currentTime;
+				}
+				MergeMediaBackground preview = new MergeMediaBackground(fileVideo, fileAudio, mergeTime, overwrite);
+				preview.execute();
+			}
+		});
 		
-		JButton btnAddToStart = new JButton("Add to start");
-		GridBagConstraints gbc_btnAddToStart = new GridBagConstraints();
-		gbc_btnAddToStart.insets = new Insets(0, 0, 5, 0);
-		gbc_btnAddToStart.gridx = 1;
-		gbc_btnAddToStart.gridy = 6;
-		eastPanel.add(btnAddToStart, gbc_btnAddToStart);
-		
-		JCheckBox chckbxReplaceAudio = new JCheckBox("Replace audio");
+		JCheckBox chckbxReplaceAudio = new JCheckBox("Overwrite audio");
+		chckbxReplaceAudio.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				overwrite = chckbxReplaceAudio.isSelected();
+			}
+		});
 		GridBagConstraints gbc_chckbxReplaceAudio = new GridBagConstraints();
+		gbc_chckbxReplaceAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxReplaceAudio.gridx = 1;
-		gbc_chckbxReplaceAudio.gridy = 8;
+		gbc_chckbxReplaceAudio.gridy = 3;
 		eastPanel.add(chckbxReplaceAudio, gbc_chckbxReplaceAudio);
+		
+		JCheckBox chckbxAddToCurrent = new JCheckBox("Add to current time");
+		chckbxAddToCurrent.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				addToCurrentTime = chckbxAddToCurrent.isSelected();
+			}
+		});
+		GridBagConstraints gbc_chckbxAddToCurrent = new GridBagConstraints();
+		gbc_chckbxAddToCurrent.insets = new Insets(0, 0, 5, 0);
+		gbc_chckbxAddToCurrent.gridx = 1;
+		gbc_chckbxAddToCurrent.gridy = 4;
+		eastPanel.add(chckbxAddToCurrent, gbc_chckbxAddToCurrent);
+		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
+		gbc_btnPreview.insets = new Insets(0, 0, 5, 0);
+		gbc_btnPreview.gridx = 1;
+		gbc_btnPreview.gridy = 5;
+		eastPanel.add(btnPreview, gbc_btnPreview);
+		
+		JButton btnSaveNoPreview = new JButton("Save");
+		btnSaveNoPreview.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				MergeMediaBackground merge = new MergeMediaBackground(fileVideo, fileAudio, 0, overwrite);
+			}
+		});
+		GridBagConstraints gbc_btnSaveNoPreview = new GridBagConstraints();
+		gbc_btnSaveNoPreview.insets = new Insets(0, 0, 5, 0);
+		gbc_btnSaveNoPreview.gridx = 1;
+		gbc_btnSaveNoPreview.gridy = 7;
+		eastPanel.add(btnSaveNoPreview, gbc_btnSaveNoPreview);
 		
 		GridBagLayout gbl_southPanel = new GridBagLayout();
 		gbl_southPanel.columnWidths = new int[]{40, 0, 40, 40, 40, 81, 73, 91, 40, 0, 0, 0, 0};
@@ -257,6 +299,7 @@ public class MainApp {
 				String minString;
 				String secString;
 				
+				currentTime = (int) (video.getTime()/1000); //Get video current time in seconds
 				min = (int) (video.getTime()/60000); //Get video time in minutes
 				sec = (int) ((video.getTime()/1000)%60); //Get video time in seconds
 				minString = "" + min;
@@ -367,18 +410,6 @@ public class MainApp {
 		
 	}
 	
-	
-	//Starts media file, given that it has been chosen by the user
-	private void StartMedia(){
-		if (fileLoc == null){
-			return;
-		} else{
-			vidLoc = fileLoc;
-			mediaPlayerComponent.getMediaPlayer().playMedia(vidLoc);
-		}
-		
-	}
-	
 	//Initializes JFileChooser, either audio or video, depending on what integer is passed into the method
 	private void InitialiseFC(int type){
 		fileChooser = new JFileChooser(new File("c:\\"));
@@ -395,37 +426,17 @@ public class MainApp {
 	}
 	
 	//Opens the JFileChooser and gets the path of the file chosen 
-	private boolean ChooseFile(){
+	private File ChooseFile(){
 		int result = fileChooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION){
 			File fileToOpen = fileChooser.getSelectedFile();
-			fileLoc = fileToOpen.getAbsolutePath();
 			fileChooser.setVisible(false);
-			return true;
+			return fileToOpen;
 		}else if(result == JFileChooser.CANCEL_OPTION){
 			fileChooser.setVisible(false);	
 		}
-        return false;
+        return null;
 	}
-	
-	//Adds audio to the start of the video file using ffmpeg, and plays the created video
-	private void MergeVideo(){
-		String audioLoc = fileLoc;
-		String cmd = "ffmpeg -i "+ vidLoc +" -i "+ audioLoc +" -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4" ;
-		
-		File f = new File("output.mp4");
-		if(f.exists()){
-			f.delete();
-		}
-		
-		ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd);
-		try {
-			Process process = pb.start();
-			process.waitFor();
-		} catch (IOException | InterruptedException e) {}
-		
-		mediaPlayerComponent.getMediaPlayer().playMedia("output.mp4");
-		
-	}
+
 	
 }
