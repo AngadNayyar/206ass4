@@ -44,6 +44,7 @@ import javax.swing.JSlider;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
+import javax.swing.JTextPane;
 
 public class MainApp {
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
@@ -51,7 +52,7 @@ public class MainApp {
 	JFileChooser fileChooser;
 	String fileLoc = null;
 	String vidLoc= "empty";
-    private boolean allowRewind = true;
+    //private boolean allowRewind = true;
 	private Timer timeUpdate;
 	
 	public static void main(String[] args) {
@@ -93,7 +94,6 @@ public class MainApp {
 		
 		JPanel eastPanel = new JPanel();
 		mainPanel.add(eastPanel, BorderLayout.EAST);
-		eastPanel.setVisible(false);
 		
 		JPanel northPanel = new JPanel();
 		mainPanel.add(northPanel, BorderLayout.NORTH);
@@ -122,10 +122,42 @@ public class MainApp {
 		});
         btnOpenVideo.setAlignmentX(Component.CENTER_ALIGNMENT);
         northPanel.add(btnOpenVideo);
+		GridBagLayout gbl_eastPanel = new GridBagLayout();
+		gbl_eastPanel.columnWidths = new int[]{5, 125, 5};
+		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_eastPanel.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		eastPanel.setLayout(gbl_eastPanel);
+		
+		JButton btnPlayAudio = new JButton("Play Audio");
+		btnPlayAudio.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		
+		//Opens a new GuiTts window
+		JButton btnCreateAudio = new JButton("Create New Audio");
+		GridBagConstraints gbc_btnCreateAudio = new GridBagConstraints();
+		gbc_btnCreateAudio.insets = new Insets(0, 0, 5, 0);
+		gbc_btnCreateAudio.gridx = 1;
+		gbc_btnCreateAudio.gridy = 0;
+		eastPanel.add(btnCreateAudio, gbc_btnCreateAudio);
+		btnCreateAudio.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AudioSynthesiser tts = new AudioSynthesiser();
+                tts.setVisible(true);     
+			}
+		});
+		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
         //Opens a JFileChooser to select audio to be placed over the video
         //checks to see if there is a video loaded and tells the user to choose one before selecting an audio file
 		JButton btnSelectAudio = new JButton("Select Audio");
+		GridBagConstraints gbc_btnSelectAudio = new GridBagConstraints();
+		gbc_btnSelectAudio.insets = new Insets(0, 0, 5, 0);
+		gbc_btnSelectAudio.gridx = 1;
+		gbc_btnSelectAudio.gridy = 1;
+		eastPanel.add(btnSelectAudio, gbc_btnSelectAudio);
 		btnSelectAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (vidLoc.equals("empty")){
@@ -135,61 +167,37 @@ public class MainApp {
 					InitialiseFC(0); 
 					boolean t = ChooseFile();
 					if (t==true){
-						eastPanel.setVisible(true);
+						//eastPanel.setVisible(true);
 					}
 				}
 			}
 		});
 		btnSelectAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
-		northPanel.add(btnSelectAudio);
-		
-		//Opens a new GuiTts window
-		JButton btnCreateAudio = new JButton("Create Audio");
-		btnCreateAudio.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				GuiTts tts = new GuiTts();
-                tts.setVisible(true);     
-			}
-		});
-		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
-		northPanel.add(btnCreateAudio);		
-		GridBagLayout gbl_eastPanel = new GridBagLayout();
-		gbl_eastPanel.columnWidths = new int[]{5, 125, 5};
-		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_eastPanel.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		eastPanel.setLayout(gbl_eastPanel);
-		
-		JButton btnPlayAudio = new JButton("Play Audio");
-		btnPlayAudio.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		GridBagConstraints gbc_btnPlayAudio = new GridBagConstraints();
 		gbc_btnPlayAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_btnPlayAudio.anchor = GridBagConstraints.NORTH;
 		gbc_btnPlayAudio.gridx = 1;
-		gbc_btnPlayAudio.gridy = 1;
+		gbc_btnPlayAudio.gridy = 2;
 		eastPanel.add(btnPlayAudio, gbc_btnPlayAudio);
 		
 		JButton btnAddToCurrent = new JButton("Add to current time");
 		GridBagConstraints gbc_btnAddToCurrent = new GridBagConstraints();
 		gbc_btnAddToCurrent.insets = new Insets(0, 0, 5, 0);
 		gbc_btnAddToCurrent.gridx = 1;
-		gbc_btnAddToCurrent.gridy = 3;
+		gbc_btnAddToCurrent.gridy = 4;
 		eastPanel.add(btnAddToCurrent, gbc_btnAddToCurrent);
 		
 		JButton btnAddToStart = new JButton("Add to start");
 		GridBagConstraints gbc_btnAddToStart = new GridBagConstraints();
 		gbc_btnAddToStart.insets = new Insets(0, 0, 5, 0);
 		gbc_btnAddToStart.gridx = 1;
-		gbc_btnAddToStart.gridy = 5;
+		gbc_btnAddToStart.gridy = 6;
 		eastPanel.add(btnAddToStart, gbc_btnAddToStart);
 		
 		JCheckBox chckbxReplaceAudio = new JCheckBox("Replace audio");
 		GridBagConstraints gbc_chckbxReplaceAudio = new GridBagConstraints();
 		gbc_chckbxReplaceAudio.gridx = 1;
-		gbc_chckbxReplaceAudio.gridy = 7;
+		gbc_chckbxReplaceAudio.gridy = 8;
 		eastPanel.add(chckbxReplaceAudio, gbc_chckbxReplaceAudio);
 		
 		GridBagLayout gbl_southPanel = new GridBagLayout();
@@ -279,14 +287,15 @@ public class MainApp {
 		JButton btnFwd = new JButton(">>");
 		btnFwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				allowRewind = false;
+				VideoControls.fastForward(video);
+				/*allowRewind = false;
 				if (!video.isMute()){
 					video.mute();
 				}
 				if(!video.isPlaying()){
 					video.pause();
 				}
-				video.setRate(4);
+				video.setRate(4);*/
 			}
 		});
 		
@@ -295,15 +304,7 @@ public class MainApp {
 		JButton btnPlay = new JButton("Play");
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				allowRewind = false;
-				if (video.isMute()){
-					video.mute();
-				}
-				if(video.getRate() > 1){
-					video.setRate(1);
-				} else {
-				video.pause();
-				}
+				VideoControls.play(video);
 			}
 		});
 				
@@ -311,16 +312,7 @@ public class MainApp {
 		JButton btnRwd = new JButton("<<");
 		btnRwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				allowRewind = true;
-				video.setRate(1);
-				if( video.isPlaying()){
-					video.pause();
-				}
-				if (!video.isMute()){
-					video.mute();
-				}
-				VideoWorker v = new VideoWorker(video);
-				v.execute();
+				VideoControls.rewind(video);
 			}
 		});
 		GridBagConstraints gbc_btnRwd = new GridBagConstraints();
@@ -436,30 +428,4 @@ public class MainApp {
 		
 	}
 	
-
-	//This VideoWorker class allows rewinding to occur in the background
-	public class VideoWorker extends SwingWorker<Void, Integer>{
-
-		private EmbeddedMediaPlayer vid;
-
-		public VideoWorker(EmbeddedMediaPlayer vid){
-			this.vid = vid;
-		}
-		
-		@Override
-		protected Void doInBackground() throws Exception {
-			while(allowRewind){
-				vid.skip(-10);
-				try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			return null;
-		}
-		
-	}
-
-
 }

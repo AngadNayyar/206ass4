@@ -1,6 +1,5 @@
 package main;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JButton;
@@ -17,31 +16,12 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.awt.Color;
 
-public class GuiTts extends JFrame {
+public class AudioSynthesiser extends JFrame {
 	private JPanel contentPane;
 	private JTextField textField;
-	BackgroundWorker b;
+	//BackgroundWorker b;
 	
-	//Swingworker class that performs a given bash command in the background as to not freeze the GUI
-	class BackgroundWorker extends SwingWorker<Void,Integer>{
-		
-		private String cmd;
-		
-		public BackgroundWorker(String cmd){
-			this.cmd = cmd;
-		}
-		
-		@Override
-		protected Void doInBackground() throws Exception {
-			ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd);
-			try {
-				Process process = pb.start();
-				process.waitFor();
-			} catch (IOException | InterruptedException e) {}
-			return null;
-		}
-		
-	}
+
 	
 	//Method that returns the amount of words in a string
 	public int wordCount(String s){
@@ -58,14 +38,14 @@ public class GuiTts extends JFrame {
 	//Method that plays back a string as synthesized audio
 	public void ReplayTTS(String s){
 		String cmd = "echo '" + s + "'| festival --tts";
-		BackgroundWorker b = new BackgroundWorker(cmd);
+		ProcessBuilderWorker b = new ProcessBuilderWorker(cmd);
 		b.execute();
 	}
 	
 	//Method that saves a string as a synthesized mp3 file in the directory of the jar
 	public void SaveTTS(String s){
 		String cmd = "echo '" + s + "'| text2wave -o textToSpeech.mp3";
-		BackgroundWorker b = new BackgroundWorker(cmd);
+		ProcessBuilderWorker b = new ProcessBuilderWorker(cmd);
 		b.execute();
 		
 	}
@@ -73,11 +53,11 @@ public class GuiTts extends JFrame {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	public static void launch(){
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GuiTts frame = new GuiTts();
+					AudioSynthesiser frame = new AudioSynthesiser();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -89,7 +69,7 @@ public class GuiTts extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public GuiTts() {
+	public AudioSynthesiser() {
 		
 		//Initializes the gui
 		setResizable(false);
