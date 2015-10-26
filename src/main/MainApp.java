@@ -196,7 +196,7 @@ public class MainApp {
 				if (addToCurrentTime){
 					mergeTime = currentTime;
 				}
-				MergeMediaBackground preview = new MergeMediaBackground(fileVideo, fileAudio, mergeTime, overwrite);
+				MergeMediaWorker preview = new MergeMediaWorker(fileVideo, fileAudio, mergeTime, overwrite);
 				preview.execute();
 			}
 		});
@@ -233,7 +233,11 @@ public class MainApp {
 		JButton btnSaveNoPreview = new JButton("Save");
 		btnSaveNoPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				MergeMediaBackground merge = new MergeMediaBackground(fileVideo, fileAudio, 0, overwrite);
+				File temp;
+				InitialiseFC(2);
+				temp = SaveFile();
+				SaveVideoWorker saveWorker = new SaveVideoWorker(temp, fileVideo, fileAudio, 0, overwrite);
+				saveWorker.execute();
 			}
 		});
 		GridBagConstraints gbc_btnSaveNoPreview = new GridBagConstraints();
@@ -421,7 +425,7 @@ public class MainApp {
 		}
         
         fileChooser.setFileFilter(filter);
-        fileChooser.setDialogTitle("Choose a file");
+        fileChooser.setDialogTitle("Choose a file name");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);		
 	}
 	
@@ -432,6 +436,18 @@ public class MainApp {
 			File fileToOpen = fileChooser.getSelectedFile();
 			fileChooser.setVisible(false);
 			return fileToOpen;
+		}else if(result == JFileChooser.CANCEL_OPTION){
+			fileChooser.setVisible(false);	
+		}
+        return null;
+	}
+	
+	private File SaveFile(){
+		int result = fileChooser.showSaveDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION){
+			File fileToSave = fileChooser.getSelectedFile();
+			fileChooser.setVisible(false);
+			return fileToSave;
 		}else if(result == JFileChooser.CANCEL_OPTION){
 			fileChooser.setVisible(false);	
 		}

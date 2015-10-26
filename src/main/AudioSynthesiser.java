@@ -3,16 +3,20 @@ package main;
 import java.awt.EventQueue;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.awt.Color;
 
@@ -20,6 +24,7 @@ public class AudioSynthesiser extends JFrame {
 	private JPanel contentPane;
 	private JTextField textField;
 	//BackgroundWorker b;
+	protected JFileChooser fileSaver;
 	
 
 	
@@ -32,21 +37,6 @@ public class AudioSynthesiser extends JFrame {
 		int words = t.split("\\s+").length;
 		return words;
 		
-		
-	}
-	
-	//Method that plays back a string as synthesized audio
-	public void ReplayTTS(String s){
-		String cmd = "echo '" + s + "'| festival --tts";
-		ProcessBuilderWorker b = new ProcessBuilderWorker(cmd);
-		b.execute();
-	}
-	
-	//Method that saves a string as a synthesized mp3 file in the directory of the jar
-	public void SaveTTS(String s){
-		String cmd = "echo '" + s + "'| text2wave -o textToSpeech.mp3";
-		ProcessBuilderWorker b = new ProcessBuilderWorker(cmd);
-		b.execute();
 		
 	}
 	
@@ -118,7 +108,8 @@ public class AudioSynthesiser extends JFrame {
 					label.setText("Please enter at most 20 words");
 					label.setVisible(true);
 				}else{	
-					ReplayTTS(s);
+					ListenMp3Worker listen = new ListenMp3Worker(s, btnPlaybackText);
+					listen.execute();
 					label.setVisible(false);
 				}
 			}
@@ -139,7 +130,20 @@ public class AudioSynthesiser extends JFrame {
 					label.setText("Please enter at most 20 words");
 					label.setVisible(true);
 				}else{
-					SaveTTS(s);
+					fileSaver = new JFileChooser();
+					FileFilter savefilter = new FileNameExtensionFilter("Audio Files", new String[] {"mp3","wav"});
+					fileSaver.setFileFilter(savefilter);
+					fileSaver.setDialogTitle("Choose a name and location");
+					fileSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					int result = fileSaver.showSaveDialog(null);
+			        if (result == JFileChooser.APPROVE_OPTION){
+						File fileSave = fileSaver.getSelectedFile();
+						fileSaver.setVisible(false);
+						CreateMp3Worker createmp3 = new CreateMp3Worker(fileSave);
+						createmp3.execute();
+					}else if(result == JFileChooser.CANCEL_OPTION){
+						fileSaver.setVisible(false);	
+					}
 					setVisible(false);
 					label.setVisible(false);
 				}
@@ -148,6 +152,7 @@ public class AudioSynthesiser extends JFrame {
 		});
 		btnSaveAudio.setBounds(222, 169, 128, 48);
 		contentPane.add(btnSaveAudio);
+		
 		
 		//Closes the GUI window and returns to the main application
 		JButton btnCancelTTS = new JButton("Cancel");
@@ -160,6 +165,7 @@ public class AudioSynthesiser extends JFrame {
 		contentPane.add(btnCancelTTS);
 		
 		//End of GUI components
+	
 		
 	}
 	
