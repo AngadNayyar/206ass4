@@ -13,6 +13,10 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JButton;
 import javax.swing.SwingWorker;
 
+/**
+ * This class creates an mp3 file using festival and swingworker, this is then played back
+ * This, however, creates an scm file to use a [more] female voice in festival
+ */
 class FemaleVoiceWorker extends SwingWorker<Void,Void>{
 	
 	private String text;
@@ -26,7 +30,9 @@ class FemaleVoiceWorker extends SwingWorker<Void,Void>{
 	@Override
 	protected Void doInBackground() throws Exception {
 		btn.setEnabled(false);
-		createscm();
+		createscm();//Create scm file with female voice settings
+		
+		//Create wave file with festival. However, use scm file to use a female voice
 		ProcessBuilder wave = new ProcessBuilder("/bin/bash", "-c", "echo '" + text + "'| text2wave -o female.wav -eval female.scm");		
 		
 		try {
@@ -34,7 +40,7 @@ class FemaleVoiceWorker extends SwingWorker<Void,Void>{
 			process.waitFor();
 		} catch (IOException | InterruptedException e) {}
 		
-		listenVoice();
+		listenVoice(); //Call method to playback the audio created.
 		return null;
 	}
 	
@@ -43,10 +49,12 @@ class FemaleVoiceWorker extends SwingWorker<Void,Void>{
         try {
             File file = new File("female.scm");
             output = new BufferedWriter(new FileWriter(file));
-            output.write("(set! duffint_params '((start 260) (end 230)))\n");
+            //This buffered writter allows the creation of a scm file, which includes the settings for a 
+            //female voice in festival
+            output.write("(set! duffint_params '((start 260) (end 230)))\n"); //set the pitch higher (more feminine)
             output.write("(Parameter.set 'Int_Method 'DuffInt)\n");
             output.write("(Parameter.set 'Int_Target_Method Int_Targets_Default)\n");
-            output.write("(Parameter.set 'Duration_Stretch 1.02)");
+            output.write("(Parameter.set 'Duration_Stretch 1.02)"); //Speak a little bit slower for better comprehensibility
         } catch ( IOException e ) {
             e.printStackTrace();
         } finally {
@@ -54,6 +62,7 @@ class FemaleVoiceWorker extends SwingWorker<Void,Void>{
         }
 	}
 	
+	//Playback the audio file created, so the user can listen to it.
 	protected void listenVoice() throws IOException, LineUnavailableException, UnsupportedAudioFileException{
 		File test = new File("female.wav");
 	    AudioInputStream audioIn = AudioSystem.getAudioInputStream(test);
@@ -65,7 +74,7 @@ class FemaleVoiceWorker extends SwingWorker<Void,Void>{
 	@Override
 	protected void done(){
 		btn.setEnabled(true);
-		try {
+		try { //Remove the temporary files created.
 			File remove = new File("female.wav");
 			File remove1 = new File("female.scm");
 			remove.delete();

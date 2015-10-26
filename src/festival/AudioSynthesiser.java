@@ -23,13 +23,16 @@ import javax.swing.JCheckBox;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+/**
+ * This class is where the other classes in the "festival" package are utilized from.
+ * This package allows for the festival functionalities of the code to occur.
+ */
 public class AudioSynthesiser extends JFrame {
+	//Declare fields
 	private JPanel contentPane;
 	private JTextField textField;
 	private boolean femaleVoice;
 	protected JFileChooser fileSaver;
-	
-
 	
 	//Method that returns the amount of words in a string
 	public int wordCount(String s){
@@ -39,13 +42,9 @@ public class AudioSynthesiser extends JFrame {
 		}
 		int words = t.split("\\s+").length;
 		return words;
-		
-		
 	}
 	
-	/**
-	 * Launch the application.
-	 */
+	//Make this frame visible.
 	public static void launch(){
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -59,12 +58,10 @@ public class AudioSynthesiser extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
+	//This creates the frame and GUI components for the audio creator.
 	public AudioSynthesiser() {
 		
-		//Initializes the gui
+		//Initializes the GUI
 		setResizable(false);
 		setBounds(250, 250, 660, 384);
 		contentPane = new JPanel();
@@ -72,7 +69,7 @@ public class AudioSynthesiser extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		//GUI components
+		//Text to display any warning messages to the user.
 		final JLabel label = new JLabel("");
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setForeground(Color.RED);
@@ -92,66 +89,66 @@ public class AudioSynthesiser extends JFrame {
 		contentPane.add(lblPleaseEnterA);
 		
 		//Gets the users input from the text field which then passed into
-		//the ReplayTTS Method, only allows for maximum 20 words to ensure the synthesized speech
-		//does not exceed the length of the video
+		//Only allows for maximum 20 words to ensure the synthesized speech does not exceed the length of the video
+		//Uses swingworker to playback the audio
 		JButton btnPlaybackText = new JButton("Playback");
 		btnPlaybackText.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String s = textField.getText();
-				if (wordCount(s) == 0){
+				if (wordCount(s) == 0){ //If no text is entered, show warning
 					label.setText("Please enter some text");
 					label.setVisible(true);
-				}else if (wordCount(s) > 20){
+				}else if (wordCount(s) > 20){ //If too many words are entered, show warning
 					label.setText("Please enter at most 20 words");
 					label.setVisible(true);
 				}else{	
-					if (femaleVoice){
+					if (femaleVoice){ //if female voice is selected, use femalevoiceworker to play audio
 						FemaleVoiceWorker female = new FemaleVoiceWorker(s, btnPlaybackText);
 						female.execute();
-					} else {
+					} else { //otherwise use ListenMp3worker to play default voice
 						ListenMp3Worker listen = new ListenMp3Worker(s, btnPlaybackText);
 						listen.execute();
 					}
-					label.setVisible(false);
+					label.setVisible(false); //remove warning label
 				}
 			}
 		});
 		btnPlaybackText.setBounds(122, 222, 128, 48);
 		contentPane.add(btnPlaybackText);
 		
-		//Again gets the users input and then passes it into the SaveTTS method
-		//with the same 20 word limit, it then closes this gui window
+		//Allows the saving of the audio. Warnings are shown if text is none or too long.
+		//The user can choose the name of the audio, and location, with JFileChooser.
 		JButton btnSaveAudio = new JButton("Save Audio");
 		btnSaveAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String s = textField.getText();
-				if (wordCount(s) == 0){
+				if (wordCount(s) == 0){ //If no text is entered, show warning
 					label.setText("Please enter some text");
 					label.setVisible(true);
-				}else if (wordCount(s) > 20){
+				}else if (wordCount(s) > 20){ //If too many words are entered, show warning
 					label.setText("Please enter at most 20 words");
 					label.setVisible(true);
 				}else{
-					fileSaver = new JFileChooser();
+					fileSaver = new JFileChooser(); //Filechooser to select file name and location
 					FileFilter savefilter = new FileNameExtensionFilter("Audio Files", new String[] {"mp3","wav"});
 					fileSaver.setFileFilter(savefilter);
 					fileSaver.setDialogTitle("Choose a name and location");
 					fileSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
 					int result = fileSaver.showSaveDialog(null);
-			        if (result == JFileChooser.APPROVE_OPTION){
+			        if (result == JFileChooser.APPROVE_OPTION){ //If user accepts new name and location
 						File fileSave = fileSaver.getSelectedFile();
 						fileSaver.setVisible(false);
-						if(femaleVoice){
+						if(femaleVoice){ //If female voice is selected, create female audio
 							FemaleSaveWorker femaleSave = new FemaleSaveWorker(s, fileSave);
 							femaleSave.execute();
-						} else {
+						} else { //otherwise create default audio
 							CreateMp3Worker createmp3 = new CreateMp3Worker(s, fileSave);
 							createmp3.execute();
 						}
 						setVisible(false);
 						label.setVisible(false);
 					}else if(result == JFileChooser.CANCEL_OPTION){
-						fileSaver.setVisible(false);	
+						fileSaver.setVisible(false); //close file chooser if cancel is chosen
 					}
 				}
 				
@@ -171,6 +168,7 @@ public class AudioSynthesiser extends JFrame {
 		btnCancelTTS.setBounds(449, 222, 110, 48);
 		contentPane.add(btnCancelTTS);
 		
+		//Checkbox to allow female voice to be used.
 		JCheckBox chckbxFemaleVoice = new JCheckBox("Female Voice");
 		chckbxFemaleVoice.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {

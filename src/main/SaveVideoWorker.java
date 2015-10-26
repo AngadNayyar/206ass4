@@ -3,6 +3,9 @@ package main;
 import javax.swing.SwingWorker;
 import java.io.File;
 
+/** 
+ * This class takes the video and audio file to be merged, merges them and saves to a desired location.
+ */
 public class SaveVideoWorker extends SwingWorker<Void, Void>{
 
 	private File outVideo;
@@ -23,13 +26,17 @@ public class SaveVideoWorker extends SwingWorker<Void, Void>{
 	protected Void doInBackground() throws Exception {
 		
 		String overwriteString = "combined";
-		if (overwrite){
+		if (overwrite){ //if overwrite is chosen, use desired audio without combining audio from video
 			overwriteString = "newAudio";
 		}
 		
+		//Create silent file with cTime length
 		ProcessBuilder offset = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -f lavfi -i anullsrc=r=48000:cl=mono -t " + cTime + " -acodec libmp3lame offset.mp3");
+		//Add audio file to this silent file
 		ProcessBuilder newAudio = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i \"concat:offset.mp3|" + fileAudio.getAbsolutePath() + "\" -c copy newAudio.mp3");
+		//Combine these two files, maintaining both audio streams
 		ProcessBuilder combinedAudio = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i " + fileVideo.getAbsolutePath() + " -i newAudio.mp3 -filter_complex amix=inputs=2:duration=first combined.mp3");
+		//Add audio to video, and save it as a preview file
 		ProcessBuilder newVideo = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i " + fileVideo.getAbsolutePath()+ " -i " + overwriteString + ".mp3 -map 0:v -map 1:a " + outVideo.getAbsolutePath() + ".avi");
 		
 		Process p1 = offset.start();
@@ -46,7 +53,7 @@ public class SaveVideoWorker extends SwingWorker<Void, Void>{
 	
 	@Override
 	protected void done(){
-		try {
+		try { //Delete the temporary files that were created
 			File del1 = new File("offset.mp3");
 			del1.delete();
 			File del2 = new File("newAudio.mp3");
@@ -56,7 +63,6 @@ public class SaveVideoWorker extends SwingWorker<Void, Void>{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Worked!");
 	}
 
 }

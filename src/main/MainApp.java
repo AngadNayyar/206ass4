@@ -1,6 +1,9 @@
+/** Author: Angad Nayyar upi: anay794
+ * This video editor program allows the user to add audio to a video file at any given point.
+ * The code is split into two packages, one is "main" which contains the video related part of the code
+ * and the other is "festival" which contains the audio related part of the code.*/
+
 package main;
-
-
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -36,7 +39,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
 
+
 public class MainApp {
+	
+	//Declare fields
 	public static boolean previewnow;
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
 	private EmbeddedMediaPlayer video;
@@ -52,6 +58,7 @@ public class MainApp {
 	private boolean overwrite;
 	private boolean addToCurrentTime;
 	
+	/*Main method to run the program.*/
 	public static void main(String[] args) {
 		new NativeDiscovery().discover();
         SwingUtilities.invokeLater(new Runnable() {
@@ -62,8 +69,9 @@ public class MainApp {
         });
 	}
 	
-	
+	//This creates the frame and GUI components for the video player.
 	private MainApp(){
+		
 		//Sets Frame
 		frame = new JFrame("VIDIVOX Trailer Editor");
 		frame.setLocation(0, 0);
@@ -77,7 +85,7 @@ public class MainApp {
 		frame.getContentPane().add(mainPanel, "mainPanel");
 		mainPanel.setLayout(new BorderLayout(0, 0));
         
-        //Embedded media player
+        //Embedded media player is created. This allows us to play the video.
 		mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
 		video = mediaPlayerComponent.getMediaPlayer();
 		
@@ -88,7 +96,6 @@ public class MainApp {
         JPanel southPanel = new JPanel();
 		mainPanel.add(southPanel, BorderLayout.SOUTH);
         
-		
 		JPanel eastPanel = new JPanel();
 		mainPanel.add(eastPanel, BorderLayout.EAST);
 		
@@ -96,9 +103,7 @@ public class MainApp {
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		northPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
-		
-        //Components added to the north and south panels
-		
+		//Warning label if user tries to add sound without selecting a video.
 		final JLabel labelW = new JLabel("Please select a video before adding sound");
 		labelW.setForeground(Color.RED);
 		northPanel.add(labelW);
@@ -114,6 +119,7 @@ public class MainApp {
 				if (tempFile != null){
 					fileVideo = tempFile;
 					video.playMedia(fileVideo.getAbsolutePath());
+					video.setRepeat(true);
 					labelW.setVisible(false);
 				}
 				
@@ -122,14 +128,16 @@ public class MainApp {
         btnOpenVideo.setAlignmentX(Component.CENTER_ALIGNMENT);
         northPanel.add(btnOpenVideo);
         
+        //Returns to unedited video from preview mode, and displays all the editing buttons again.
         JButton btnReturnToEditor = new JButton("Return to unedited video");
         btnReturnToEditor.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		video.playMedia(fileVideo.getAbsolutePath());
+        		video.setRepeat(true); //Allows video to repeat once the end is reached.
         		btnOpenVideo.setVisible(true);
         		eastPanel.setVisible(true);
         		btnReturnToEditor.setVisible(false);
-        		File del1 = new File(previewPath);
+        		File del1 = new File(previewPath); //Delete the preview file once preview is finished.
         		del1.delete();
         	}
         });
@@ -142,7 +150,7 @@ public class MainApp {
 		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		eastPanel.setLayout(gbl_eastPanel);
 		
-		//Opens a new GuiTts window
+		//Opens a new window which allows the creation of audio via festival to occur.
 		JButton btnCreateAudio = new JButton("Create New Audio");
 		GridBagConstraints gbc_btnCreateAudio = new GridBagConstraints();
 		gbc_btnCreateAudio.insets = new Insets(0, 0, 5, 0);
@@ -157,46 +165,55 @@ public class MainApp {
 		});
 		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
+		//Allows preview to occur. This starts a swingworker that creates the preview video. This then turns
+		//into preview mode and let's the timer (further down) play the preview video.
 		JButton btnPreview = new JButton("Preview");
 		btnPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int mergeTime = 0;
-				if (addToCurrentTime){
+				if (addToCurrentTime){ //Add to current video time if box is ticked.
 					mergeTime = currentTime;
 				}
 				MergeMediaWorker preview = new MergeMediaWorker(fileVideo, fileAudio, mergeTime, overwrite);
 				preview.execute();
-				previewPath = fileVideo.getParent() + "/preview.avi";
-				btnReturnToEditor.setVisible(true);
+				previewPath = fileVideo.getParent() + "/preview.avi"; //Set path to preview file.
+				btnReturnToEditor.setVisible(true); //Next few lines turn editor into preview mode.
 				eastPanel.setVisible(false);
 				btnOpenVideo.setVisible(false);
 				btnReturnToEditor.setEnabled(false);
 				btnReturnToEditor.setText("Loading... Please Wait!");
 			}
 		});
+		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
+		btnPreview.setEnabled(false);
+		gbc_btnPreview.insets = new Insets(0, 0, 5, 0);
+		gbc_btnPreview.gridx = 1;
+		gbc_btnPreview.gridy = 5;
+		eastPanel.add(btnPreview, gbc_btnPreview);
 		
+		//Checkbox to allow user to overwrite audio or not.
 		JCheckBox chckbxReplaceAudio = new JCheckBox("Overwrite audio");
 		chckbxReplaceAudio.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				overwrite = chckbxReplaceAudio.isSelected();
 			}
 		});
-		
-		JLabel lblAudioSelected = new JLabel("");
-		lblAudioSelected.setEnabled(false);
-		GridBagConstraints gbc_lblAudioSelected = new GridBagConstraints();
-		gbc_lblAudioSelected.insets = new Insets(0, 0, 5, 0);
-		gbc_lblAudioSelected.gridx = 1;
-		gbc_lblAudioSelected.gridy = 1;
-		eastPanel.add(lblAudioSelected, gbc_lblAudioSelected);
-		
-        
 		GridBagConstraints gbc_chckbxReplaceAudio = new GridBagConstraints();
 		gbc_chckbxReplaceAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxReplaceAudio.gridx = 1;
 		gbc_chckbxReplaceAudio.gridy = 3;
 		eastPanel.add(chckbxReplaceAudio, gbc_chckbxReplaceAudio);
 		
+		//Text to show which audio file is selected.
+		JLabel lblAudioSelected = new JLabel("");
+		lblAudioSelected.setEnabled(false);
+		GridBagConstraints gbc_lblAudioSelected = new GridBagConstraints();
+		gbc_lblAudioSelected.insets = new Insets(0, 0, 5, 0);
+		gbc_lblAudioSelected.gridx = 1;
+		gbc_lblAudioSelected.gridy = 1;
+		eastPanel.add(lblAudioSelected, gbc_lblAudioSelected);		
+		
+		//Checkbox to add audio to current video time, or to the start of the video.
 		JCheckBox chckbxAddToCurrent = new JCheckBox("Add to current time");
 		chckbxAddToCurrent.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
@@ -208,22 +225,17 @@ public class MainApp {
 		gbc_chckbxAddToCurrent.gridx = 1;
 		gbc_chckbxAddToCurrent.gridy = 4;
 		eastPanel.add(chckbxAddToCurrent, gbc_chckbxAddToCurrent);
-		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
-		btnPreview.setEnabled(false);
-		gbc_btnPreview.insets = new Insets(0, 0, 5, 0);
-		gbc_btnPreview.gridx = 1;
-		gbc_btnPreview.gridy = 5;
-		eastPanel.add(btnPreview, gbc_btnPreview);
 		
-		JButton btnSaveNoPreview = new JButton("Save");
+		//Button to merge and save video with audio file.
+		JButton btnSaveNoPreview = new JButton("Merge and save");
 		btnSaveNoPreview.setEnabled(false);
 		btnSaveNoPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				File temp;
-				InitialiseFC(1);
+				InitialiseFC(1); //File chooser in save dialog to get desired file name
 				temp = SaveFile();
 				SaveVideoWorker saveWorker = new SaveVideoWorker(temp, fileVideo, fileAudio, currentTime, overwrite);
-				saveWorker.execute();
+				saveWorker.execute(); //Execute swing worker to save video.
 			}
 		});
 		GridBagConstraints gbc_btnSaveNoPreview = new GridBagConstraints();
@@ -232,7 +244,7 @@ public class MainApp {
 		gbc_btnSaveNoPreview.gridy = 7;
 		eastPanel.add(btnSaveNoPreview, gbc_btnSaveNoPreview);
 		
-		//Opens a JFileChooser to select audio to be placed over the video
+		//Opens a JFileChooser to select audio to be used
         //checks to see if there is a video loaded and tells the user to choose one before selecting an audio file
 		JButton btnSelectAudio = new JButton("Select Audio");
 		GridBagConstraints gbc_btnSelectAudio = new GridBagConstraints();
@@ -250,9 +262,9 @@ public class MainApp {
 					InitialiseFC(0); 
 					tempFile = ChooseFile();
 					if (tempFile != null){
-						fileAudio = tempFile;
+						fileAudio = tempFile; //set this mp3 file as the mp3 file field for the code
 						lblAudioSelected.setText(fileAudio.getName());
-						btnPreview.setEnabled(true);
+						btnPreview.setEnabled(true); //enable preview and save buttons
 						btnSaveNoPreview.setEnabled(true);
 					}
 				}
@@ -260,6 +272,7 @@ public class MainApp {
 		});
 		btnSelectAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
+		//southPanel layout settings
 		GridBagLayout gbl_southPanel = new GridBagLayout();
 		gbl_southPanel.columnWidths = new int[]{40, 0, 40, 40, 40, 81, 73, 91, 40, 0, 0, 0, 0};
 		gbl_southPanel.rowHeights = new int[]{30, 41, 0};
@@ -267,7 +280,7 @@ public class MainApp {
 		gbl_southPanel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		southPanel.setLayout(gbl_southPanel);
 		
-						
+		//Label to display current time				
 		JLabel lblTime = new JLabel("00:00");
 		GridBagConstraints gbc_lblTime = new GridBagConstraints();
 		gbc_lblTime.insets = new Insets(0, 0, 5, 5);
@@ -275,19 +288,21 @@ public class MainApp {
 		gbc_lblTime.gridy = 0;
 		southPanel.add(lblTime, gbc_lblTime);
 		
+		//Slider to show where in the video we are up to.
+		//This allows the user to move the slider and move through the video.
 		JSlider sliderVideo = new JSlider();
 		sliderVideo.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				video.pause();
-				timeUpdate.stop();
+				timeUpdate.stop(); //Pause timer (updater)
 			}
 			@Override
 			public void mouseReleased(MouseEvent arg) {
 				float sliderVideoTime = sliderVideo.getValue()/5000.0f;
 				video.setPosition(sliderVideoTime);
 				video.play();
-				timeUpdate.restart();
+				timeUpdate.restart(); //Restart timer (updater)
 			}
 		});
 		GridBagConstraints gbc_sliderVideo = new GridBagConstraints();
@@ -301,6 +316,7 @@ public class MainApp {
 		southPanel.add(sliderVideo, gbc_sliderVideo);
 		
 		//The timer below checks the elapsed video time and updates the slider every 100ms
+		//It also plays the preview video if the previewnow bit has been enabled
 		timeUpdate = new Timer(100, new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent evt) {
@@ -321,21 +337,22 @@ public class MainApp {
 					secString = "0" + sec;
 				}
 				String timeMinSec = minString + ":" + secString;
-				lblTime.setText(timeMinSec);	
-				sliderVideo.setValue((int) (video.getPosition() * 5000.0f));
+				lblTime.setText(timeMinSec);	//set label to current time 
+				sliderVideo.setValue((int) (video.getPosition() * 5000.0f)); //move slider along
 				
-				if (previewnow){
-					video.playMedia(previewPath);
+				if (previewnow){ //if previewnow boolean is true
+					video.playMedia(previewPath); //play the preview video
+					video.setRepeat(true);
 					btnReturnToEditor.setEnabled(true);
 					btnReturnToEditor.setText("Return to unedited video");
 					previewnow = false;
 				}
 			}
 		});
-		timeUpdate.start();
+		timeUpdate.start(); //Start the timer (updater)
 				
 
-		//Mute using built in function.
+		//Forward by calling the fast forward function in video controls
 		JButton btnMute = new JButton("Mute");
 		btnMute.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -343,7 +360,7 @@ public class MainApp {
 			}
 		});
 		
-		//Forward works by setting the rate to 4x the normal rate of play
+		//Forward by calling the fast forward function in video controls
 		JButton btnFwd = new JButton(">>");
 		btnFwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -352,15 +369,15 @@ public class MainApp {
 		});
 		
 				
-		//Replay resumes the video to normal play
-		JButton btnPlay = new JButton("Play");
+		//Play/Pause by calling the play/pause function in video controls
+		JButton btnPlay = new JButton("> ||");
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				VideoControls.play(video);
 			}
 		});
 				
-		//Create an instance of VideoWorker (swingworker) to rewind the video.
+		//Rewind by calling the rewind function in video controls
 		JButton btnRwd = new JButton("<<");
 		btnRwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -399,6 +416,7 @@ public class MainApp {
 		gbc_lblVolume.gridy = 1;
 		southPanel.add(lblVolume, gbc_lblVolume);
 		
+		//Slider to control the video audio levels.
 		JSlider sliderVolume = new JSlider();
 		GridBagConstraints gbc_sliderVolume = new GridBagConstraints();
 		gbc_sliderVolume.insets = new Insets(0, 0, 0, 5);
@@ -409,7 +427,7 @@ public class MainApp {
 		sliderVolume.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg) {
 				int volume = sliderVolume.getValue();	
-				video.setVolume(volume);
+				video.setVolume(volume); //Set the video volume to slider level
 			}
 		});
 		southPanel.add(sliderVolume, gbc_sliderVolume);
@@ -424,9 +442,9 @@ public class MainApp {
 		fileChooser = new JFileChooser(new File("c:\\"));
 		FileFilter filter;
 		if (type == (1)){
-			filter = new FileNameExtensionFilter("Video Files", new String[] {"avi","mp4"});
+			filter = new FileNameExtensionFilter("Video Files", new String[] {"avi","mp4"}); //filter for video files
 		}else{
-			filter = new FileNameExtensionFilter("Audio Files", new String[] {"mp3","wav"});
+			filter = new FileNameExtensionFilter("Audio Files", new String[] {"mp3","wav"}); //filter for audio files
 		}
         
         fileChooser.setFileFilter(filter);
@@ -447,6 +465,7 @@ public class MainApp {
         return null;
 	}
 	
+	//Opens the JFileChooser and gets the path of the filename desired
 	private File SaveFile(){
 		int result = fileChooser.showSaveDialog(null);
         if (result == JFileChooser.APPROVE_OPTION){
