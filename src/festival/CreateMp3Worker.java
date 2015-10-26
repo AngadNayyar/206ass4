@@ -1,4 +1,4 @@
-package main;
+package festival;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,7 @@ class CreateMp3Worker extends SwingWorker<Void,Void>{
 	@Override
 	protected void done(){
 		try {
-			File remove = new File(name + ".wav");
+			File remove = new File(name.getName() + ".wav");
 			remove.delete();
 		} catch (Exception e) {
 			e.printStackTrace();

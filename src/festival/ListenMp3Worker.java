@@ -1,4 +1,4 @@
-package main;
+package festival;
 
 import java.io.IOException;
 

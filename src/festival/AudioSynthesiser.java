@@ -1,4 +1,4 @@
-package main;
+package festival;
 
 import java.awt.EventQueue;
 
@@ -19,11 +19,14 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.awt.Color;
+import javax.swing.JCheckBox;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class AudioSynthesiser extends JFrame {
 	private JPanel contentPane;
 	private JTextField textField;
-	//BackgroundWorker b;
+	private boolean femaleVoice;
 	protected JFileChooser fileSaver;
 	
 
@@ -63,7 +66,7 @@ public class AudioSynthesiser extends JFrame {
 		
 		//Initializes the gui
 		setResizable(false);
-		setBounds(250, 250, 589, 337);
+		setBounds(250, 250, 660, 384);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -73,26 +76,20 @@ public class AudioSynthesiser extends JFrame {
 		final JLabel label = new JLabel("");
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setForeground(Color.RED);
-		label.setBounds(125, 242, 332, 14);
+		label.setBounds(132, 160, 332, 14);
 		contentPane.add(label);
 		label.setVisible(false);
 		
 		textField = new JTextField();
-		textField.setBounds(58, 128, 456, 20);
+		textField.setBounds(122, 128, 456, 20);
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
 		//Label that informs the user what to do
 		JLabel lblPleaseEnterA = new JLabel("Please enter text to synthesize (20 words max)");
 		lblPleaseEnterA.setHorizontalAlignment(SwingConstants.CENTER);
-		lblPleaseEnterA.setBounds(100, 82, 400, 35);
+		lblPleaseEnterA.setBounds(122, 77, 400, 35);
 		contentPane.add(lblPleaseEnterA);
-		
-		JLabel lblAudioWillBe = new JLabel("Audio will be saved to the directory of the jar, as textToSpeech.mp3 ");
-		lblAudioWillBe.setForeground(Color.GRAY);
-		lblAudioWillBe.setHorizontalAlignment(SwingConstants.CENTER);
-		lblAudioWillBe.setBounds(40, 220, 500, 35);
-		contentPane.add(lblAudioWillBe);
 		
 		//Gets the users input from the text field which then passed into
 		//the ReplayTTS Method, only allows for maximum 20 words to ensure the synthesized speech
@@ -108,13 +105,18 @@ public class AudioSynthesiser extends JFrame {
 					label.setText("Please enter at most 20 words");
 					label.setVisible(true);
 				}else{	
-					ListenMp3Worker listen = new ListenMp3Worker(s, btnPlaybackText);
-					listen.execute();
+					if (femaleVoice){
+						FemaleVoiceWorker female = new FemaleVoiceWorker(s, btnPlaybackText);
+						female.execute();
+					} else {
+						ListenMp3Worker listen = new ListenMp3Worker(s, btnPlaybackText);
+						listen.execute();
+					}
 					label.setVisible(false);
 				}
 			}
 		});
-		btnPlaybackText.setBounds(84, 169, 128, 48);
+		btnPlaybackText.setBounds(122, 222, 128, 48);
 		contentPane.add(btnPlaybackText);
 		
 		//Again gets the users input and then passes it into the SaveTTS method
@@ -139,18 +141,23 @@ public class AudioSynthesiser extends JFrame {
 			        if (result == JFileChooser.APPROVE_OPTION){
 						File fileSave = fileSaver.getSelectedFile();
 						fileSaver.setVisible(false);
-						CreateMp3Worker createmp3 = new CreateMp3Worker(s, fileSave);
-						createmp3.execute();
+						if(femaleVoice){
+							FemaleSaveWorker femaleSave = new FemaleSaveWorker(s, fileSave);
+							femaleSave.execute();
+						} else {
+							CreateMp3Worker createmp3 = new CreateMp3Worker(s, fileSave);
+							createmp3.execute();
+						}
+						setVisible(false);
+						label.setVisible(false);
 					}else if(result == JFileChooser.CANCEL_OPTION){
 						fileSaver.setVisible(false);	
 					}
-					setVisible(false);
-					label.setVisible(false);
 				}
 				
 			}
 		});
-		btnSaveAudio.setBounds(222, 169, 128, 48);
+		btnSaveAudio.setBounds(283, 222, 128, 48);
 		contentPane.add(btnSaveAudio);
 		
 		
@@ -161,8 +168,21 @@ public class AudioSynthesiser extends JFrame {
 				setVisible(false);
 			}
 		});
-		btnCancelTTS.setBounds(360, 169, 110, 48);
+		btnCancelTTS.setBounds(449, 222, 110, 48);
 		contentPane.add(btnCancelTTS);
+		
+		JCheckBox chckbxFemaleVoice = new JCheckBox("Female Voice");
+		chckbxFemaleVoice.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (chckbxFemaleVoice.isSelected()){
+					femaleVoice = true;
+				} else {
+					femaleVoice = false;
+				}
+			}
+		});
+		chckbxFemaleVoice.setBounds(142, 172, 221, 41);
+		contentPane.add(chckbxFemaleVoice);
 		
 		//End of GUI components
 	

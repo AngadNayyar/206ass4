@@ -11,32 +11,23 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import uk.co.caprica.vlcj.binding.LibVlc;
+import festival.AudioSynthesiser;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 import uk.co.caprica.vlcj.discovery.NativeDiscovery;
-import uk.co.caprica.vlcj.player.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
-import uk.co.caprica.vlcj.player.media.Media;
-import uk.co.caprica.vlcj.player.media.callback.nonseekable.FileInputStreamMedia;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -44,15 +35,16 @@ import javax.swing.JSlider;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
-import javax.swing.JTextPane;
 
 public class MainApp {
+	public static boolean previewnow;
 	private EmbeddedMediaPlayerComponent mediaPlayerComponent;
+	private EmbeddedMediaPlayer video;
 	private final JFrame frame;
 	JFileChooser fileChooser;
 	String fileLoc = null;
 	String vidLoc= "empty";
-    //private boolean allowRewind = true;
+	private String previewPath;
 	private Timer timeUpdate;
 	private int currentTime;
 	private File fileVideo;
@@ -87,7 +79,7 @@ public class MainApp {
         
         //Embedded media player
 		mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
-		final EmbeddedMediaPlayer video = mediaPlayerComponent.getMediaPlayer();
+		video = mediaPlayerComponent.getMediaPlayer();
 		
         //Adds it to the frame and loads video
         mainPanel.add(mediaPlayerComponent, BorderLayout.CENTER);
@@ -121,7 +113,7 @@ public class MainApp {
 				tempFile = ChooseFile();
 				if (tempFile != null){
 					fileVideo = tempFile;
-					mediaPlayerComponent.getMediaPlayer().playMedia(fileVideo.getAbsolutePath());
+					video.playMedia(fileVideo.getAbsolutePath());
 					labelW.setVisible(false);
 				}
 				
@@ -129,6 +121,20 @@ public class MainApp {
 		});
         btnOpenVideo.setAlignmentX(Component.CENTER_ALIGNMENT);
         northPanel.add(btnOpenVideo);
+        
+        JButton btnReturnToEditor = new JButton("Return to unedited video");
+        btnReturnToEditor.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		video.playMedia(fileVideo.getAbsolutePath());
+        		btnOpenVideo.setVisible(true);
+        		eastPanel.setVisible(true);
+        		btnReturnToEditor.setVisible(false);
+        		File del1 = new File(previewPath);
+        		del1.delete();
+        	}
+        });
+        northPanel.add(btnReturnToEditor);
+        btnReturnToEditor.setVisible(false);
 		GridBagLayout gbl_eastPanel = new GridBagLayout();
 		gbl_eastPanel.columnWidths = new int[]{5, 125, 5};
 		gbl_eastPanel.rowHeights = new int[]{41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -160,6 +166,12 @@ public class MainApp {
 				}
 				MergeMediaWorker preview = new MergeMediaWorker(fileVideo, fileAudio, mergeTime, overwrite);
 				preview.execute();
+				previewPath = fileVideo.getParent() + "/preview.avi";
+				btnReturnToEditor.setVisible(true);
+				eastPanel.setVisible(false);
+				btnOpenVideo.setVisible(false);
+				btnReturnToEditor.setEnabled(false);
+				btnReturnToEditor.setText("Loading... Please Wait!");
 			}
 		});
 		
@@ -264,15 +276,6 @@ public class MainApp {
 		southPanel.add(lblTime, gbc_lblTime);
 		
 		JSlider sliderVideo = new JSlider();
-		/*sliderVideo.addChangeListener(new ChangeListener(){
-			@Override
-			public void stateChanged(ChangeEvent arg) {
-				if (sliderVideo.getValueIsAdjusting()){
-					float sliderVideoTime = sliderVideo.getValue()/5000.0f;
-					video.setPosition(sliderVideoTime);
-				}
-			}
-		});*/
 		sliderVideo.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -297,8 +300,8 @@ public class MainApp {
 		sliderVideo.setMaximum(5000);
 		southPanel.add(sliderVideo, gbc_sliderVideo);
 		
-		//The timer below checks the elapsed video time and updates the slider every 200ms
-		timeUpdate = new Timer(200, new ActionListener(){
+		//The timer below checks the elapsed video time and updates the slider every 100ms
+		timeUpdate = new Timer(100, new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent evt) {
 				int min;
@@ -320,6 +323,13 @@ public class MainApp {
 				String timeMinSec = minString + ":" + secString;
 				lblTime.setText(timeMinSec);	
 				sliderVideo.setValue((int) (video.getPosition() * 5000.0f));
+				
+				if (previewnow){
+					video.playMedia(previewPath);
+					btnReturnToEditor.setEnabled(true);
+					btnReturnToEditor.setText("Return to unedited video");
+					previewnow = false;
+				}
 			}
 		});
 		timeUpdate.start();
@@ -338,14 +348,6 @@ public class MainApp {
 		btnFwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				VideoControls.fastForward(video);
-				/*allowRewind = false;
-				if (!video.isMute()){
-					video.mute();
-				}
-				if(!video.isPlaying()){
-					video.pause();
-				}
-				video.setRate(4);*/
 			}
 		});
 		
