@@ -19,9 +19,7 @@ class CreateMp3Worker extends SwingWorker<Void,Void>{
 	@Override
 	protected Void doInBackground() throws Exception {
 		ProcessBuilder wave = new ProcessBuilder("/bin/bash", "-c", "echo '" + text + "'| text2wave -o " + name.getName() + ".wav");
-		wave.directory(name.getParentFile());
-		ProcessBuilder mp3create = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -y -i " + name.getName() + ".wav -f mp3 " + name + ".mp3");
-		mp3create.directory(name.getParentFile());
+		ProcessBuilder mp3create = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -y -i " + name.getName() + ".wav -f mp3 " + name.getAbsolutePath() + ".mp3");
 		
 		try {
 			Process process = wave.start();

@@ -139,7 +139,7 @@ public class AudioSynthesiser extends JFrame {
 			        if (result == JFileChooser.APPROVE_OPTION){
 						File fileSave = fileSaver.getSelectedFile();
 						fileSaver.setVisible(false);
-						CreateMp3Worker createmp3 = new CreateMp3Worker(fileSave);
+						CreateMp3Worker createmp3 = new CreateMp3Worker(s, fileSave);
 						createmp3.execute();
 					}else if(result == JFileChooser.CANCEL_OPTION){
 						fileSaver.setVisible(false);	

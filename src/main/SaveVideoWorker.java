@@ -22,19 +22,15 @@ public class SaveVideoWorker extends SwingWorker<Void, Void>{
 	@Override
 	protected Void doInBackground() throws Exception {
 		
-		String overwriteString = "newAudio";
+		String overwriteString = "combined";
 		if (overwrite){
-			overwriteString = "combined";
+			overwriteString = "newAudio";
 		}
 		
-		ProcessBuilder offset = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -f lavfi -i anullsrc=r=48000:cl=mono -t " + cTime + " -acodec libmp3lame empty.mp3");
-		offset.directory(outVideo.getParentFile());
+		ProcessBuilder offset = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -f lavfi -i anullsrc=r=48000:cl=mono -t " + cTime + " -acodec libmp3lame offset.mp3");
 		ProcessBuilder newAudio = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i \"concat:offset.mp3|" + fileAudio.getAbsolutePath() + "\" -c copy newAudio.mp3");
-		newAudio.directory(outVideo.getParentFile());
-		ProcessBuilder combinedAudio = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i " + fileVideo.getAbsolutePath() + "-i newAudio.mp3 -filter_complex amix=:duration=first combined.mp3");
-		combinedAudio.directory(outVideo.getParentFile());
-		ProcessBuilder newVideo = new ProcessBuilder("/bin/bash", "-c", "cd " + outVideo.getParent(), "ffmpeg -i " + fileVideo.getAbsolutePath()+ " -i " + overwriteString + ".mp3 -map 0:v -map 1:a " + outVideo.getName() + ".avi");
-		newVideo.directory(outVideo.getParentFile());
+		ProcessBuilder combinedAudio = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i " + fileVideo.getAbsolutePath() + " -i newAudio.mp3 -filter_complex amix=inputs=2:duration=first combined.mp3");
+		ProcessBuilder newVideo = new ProcessBuilder("/bin/bash", "-c", "ffmpeg -i " + fileVideo.getAbsolutePath()+ " -i " + overwriteString + ".mp3 -map 0:v -map 1:a " + outVideo.getAbsolutePath() + ".avi");
 		
 		Process p1 = offset.start();
 		p1.waitFor();

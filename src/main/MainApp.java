@@ -136,12 +136,6 @@ public class MainApp {
 		gbl_eastPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		eastPanel.setLayout(gbl_eastPanel);
 		
-		JButton btnPlayAudio = new JButton("Play Audio");
-		btnPlayAudio.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
-		
 		//Opens a new GuiTts window
 		JButton btnCreateAudio = new JButton("Create New Audio");
 		GridBagConstraints gbc_btnCreateAudio = new GridBagConstraints();
@@ -156,38 +150,6 @@ public class MainApp {
 			}
 		});
 		btnCreateAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
-		
-        //Opens a JFileChooser to select audio to be placed over the video
-        //checks to see if there is a video loaded and tells the user to choose one before selecting an audio file
-		JButton btnSelectAudio = new JButton("Select Audio");
-		GridBagConstraints gbc_btnSelectAudio = new GridBagConstraints();
-		gbc_btnSelectAudio.insets = new Insets(0, 0, 5, 0);
-		gbc_btnSelectAudio.gridx = 1;
-		gbc_btnSelectAudio.gridy = 1;
-		eastPanel.add(btnSelectAudio, gbc_btnSelectAudio);
-		btnSelectAudio.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				File tempFile;
-				if (fileVideo == null){
-					labelW.setVisible(true);
-				} else {
-					labelW.setVisible(false);
-					InitialiseFC(0); 
-					tempFile = ChooseFile();
-					if (tempFile != null){
-						fileAudio = tempFile;
-						//eastPanel.setVisible(true);
-					}
-				}
-			}
-		});
-		btnSelectAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
-		GridBagConstraints gbc_btnPlayAudio = new GridBagConstraints();
-		gbc_btnPlayAudio.insets = new Insets(0, 0, 5, 0);
-		gbc_btnPlayAudio.anchor = GridBagConstraints.NORTH;
-		gbc_btnPlayAudio.gridx = 1;
-		gbc_btnPlayAudio.gridy = 2;
-		eastPanel.add(btnPlayAudio, gbc_btnPlayAudio);
 		
 		JButton btnPreview = new JButton("Preview");
 		btnPreview.addActionListener(new ActionListener() {
@@ -207,6 +169,16 @@ public class MainApp {
 				overwrite = chckbxReplaceAudio.isSelected();
 			}
 		});
+		
+		JLabel lblAudioSelected = new JLabel("");
+		lblAudioSelected.setEnabled(false);
+		GridBagConstraints gbc_lblAudioSelected = new GridBagConstraints();
+		gbc_lblAudioSelected.insets = new Insets(0, 0, 5, 0);
+		gbc_lblAudioSelected.gridx = 1;
+		gbc_lblAudioSelected.gridy = 1;
+		eastPanel.add(lblAudioSelected, gbc_lblAudioSelected);
+		
+        
 		GridBagConstraints gbc_chckbxReplaceAudio = new GridBagConstraints();
 		gbc_chckbxReplaceAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxReplaceAudio.gridx = 1;
@@ -225,18 +197,20 @@ public class MainApp {
 		gbc_chckbxAddToCurrent.gridy = 4;
 		eastPanel.add(chckbxAddToCurrent, gbc_chckbxAddToCurrent);
 		GridBagConstraints gbc_btnPreview = new GridBagConstraints();
+		btnPreview.setEnabled(false);
 		gbc_btnPreview.insets = new Insets(0, 0, 5, 0);
 		gbc_btnPreview.gridx = 1;
 		gbc_btnPreview.gridy = 5;
 		eastPanel.add(btnPreview, gbc_btnPreview);
 		
 		JButton btnSaveNoPreview = new JButton("Save");
+		btnSaveNoPreview.setEnabled(false);
 		btnSaveNoPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				File temp;
-				InitialiseFC(2);
+				InitialiseFC(1);
 				temp = SaveFile();
-				SaveVideoWorker saveWorker = new SaveVideoWorker(temp, fileVideo, fileAudio, 0, overwrite);
+				SaveVideoWorker saveWorker = new SaveVideoWorker(temp, fileVideo, fileAudio, currentTime, overwrite);
 				saveWorker.execute();
 			}
 		});
@@ -246,12 +220,41 @@ public class MainApp {
 		gbc_btnSaveNoPreview.gridy = 7;
 		eastPanel.add(btnSaveNoPreview, gbc_btnSaveNoPreview);
 		
+		//Opens a JFileChooser to select audio to be placed over the video
+        //checks to see if there is a video loaded and tells the user to choose one before selecting an audio file
+		JButton btnSelectAudio = new JButton("Select Audio");
+		GridBagConstraints gbc_btnSelectAudio = new GridBagConstraints();
+		gbc_btnSelectAudio.insets = new Insets(0, 0, 5, 0);
+		gbc_btnSelectAudio.gridx = 1;
+		gbc_btnSelectAudio.gridy = 2;
+		eastPanel.add(btnSelectAudio, gbc_btnSelectAudio);
+		btnSelectAudio.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File tempFile;
+				if (fileVideo == null){
+					labelW.setVisible(true);
+				} else {
+					labelW.setVisible(false);
+					InitialiseFC(0); 
+					tempFile = ChooseFile();
+					if (tempFile != null){
+						fileAudio = tempFile;
+						lblAudioSelected.setText(fileAudio.getName());
+						btnPreview.setEnabled(true);
+						btnSaveNoPreview.setEnabled(true);
+					}
+				}
+			}
+		});
+		btnSelectAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
 		GridBagLayout gbl_southPanel = new GridBagLayout();
 		gbl_southPanel.columnWidths = new int[]{40, 0, 40, 40, 40, 81, 73, 91, 40, 0, 0, 0, 0};
 		gbl_southPanel.rowHeights = new int[]{30, 41, 0};
 		gbl_southPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_southPanel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		southPanel.setLayout(gbl_southPanel);
+		
 						
 		JLabel lblTime = new JLabel("00:00");
 		GridBagConstraints gbc_lblTime = new GridBagConstraints();
@@ -421,7 +424,7 @@ public class MainApp {
 		if (type == (1)){
 			filter = new FileNameExtensionFilter("Video Files", new String[] {"avi","mp4"});
 		}else{
-			filter = new FileNameExtensionFilter("Audio File", new String[] {"mp3","wav"});
+			filter = new FileNameExtensionFilter("Audio Files", new String[] {"mp3","wav"});
 		}
         
         fileChooser.setFileFilter(filter);
