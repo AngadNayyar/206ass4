@@ -12,12 +12,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.awt.Color;
 import javax.swing.JCheckBox;
 import javax.swing.event.ChangeListener;
@@ -92,6 +90,7 @@ public class AudioSynthesiser extends JFrame {
 		//Only allows for maximum 20 words to ensure the synthesized speech does not exceed the length of the video
 		//Uses swingworker to playback the audio
 		JButton btnPlaybackText = new JButton("Playback");
+		btnPlaybackText.setToolTipText("Play the text in box above");
 		btnPlaybackText.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String s = textField.getText();
@@ -119,6 +118,7 @@ public class AudioSynthesiser extends JFrame {
 		//Allows the saving of the audio. Warnings are shown if text is none or too long.
 		//The user can choose the name of the audio, and location, with JFileChooser.
 		JButton btnSaveAudio = new JButton("Save Audio");
+		btnSaveAudio.setToolTipText("Save text in box above");
 		btnSaveAudio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String s = textField.getText();
@@ -160,6 +160,7 @@ public class AudioSynthesiser extends JFrame {
 		
 		//Closes the GUI window and returns to the main application
 		JButton btnCancelTTS = new JButton("Cancel");
+		btnCancelTTS.setToolTipText("Close and return to editor");
 		btnCancelTTS.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);
@@ -170,6 +171,7 @@ public class AudioSynthesiser extends JFrame {
 		
 		//Checkbox to allow female voice to be used.
 		JCheckBox chckbxFemaleVoice = new JCheckBox("Female Voice");
+		chckbxFemaleVoice.setToolTipText("Select to use a female voice");
 		chckbxFemaleVoice.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (chckbxFemaleVoice.isSelected()){

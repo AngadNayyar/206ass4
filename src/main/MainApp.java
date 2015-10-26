@@ -111,6 +111,7 @@ public class MainApp {
 		
 		//Calls the appropriate methods to open JFileChooser and start the video if a file is chosen
         JButton btnOpenVideo = new JButton("Open Video");
+        btnOpenVideo.setToolTipText("Use this to select video to open in editor.");
         btnOpenVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				File tempFile;
@@ -130,6 +131,7 @@ public class MainApp {
         
         //Returns to unedited video from preview mode, and displays all the editing buttons again.
         JButton btnReturnToEditor = new JButton("Return to unedited video");
+        btnReturnToEditor.setToolTipText("Use this to stop viewing preview and return to video.");
         btnReturnToEditor.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		video.playMedia(fileVideo.getAbsolutePath());
@@ -152,6 +154,7 @@ public class MainApp {
 		
 		//Opens a new window which allows the creation of audio via festival to occur.
 		JButton btnCreateAudio = new JButton("Create New Audio");
+		btnCreateAudio.setToolTipText("Create an audio file from text.");
 		GridBagConstraints gbc_btnCreateAudio = new GridBagConstraints();
 		gbc_btnCreateAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_btnCreateAudio.gridx = 1;
@@ -193,6 +196,7 @@ public class MainApp {
 		
 		//Checkbox to allow user to overwrite audio or not.
 		JCheckBox chckbxReplaceAudio = new JCheckBox("Overwrite audio");
+		chckbxReplaceAudio.setToolTipText("Select to overwrite existing audio in the video");
 		chckbxReplaceAudio.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				overwrite = chckbxReplaceAudio.isSelected();
@@ -215,6 +219,7 @@ public class MainApp {
 		
 		//Checkbox to add audio to current video time, or to the start of the video.
 		JCheckBox chckbxAddToCurrent = new JCheckBox("Add to current time");
+		chckbxAddToCurrent.setToolTipText("Select to add audio to the current video time");
 		chckbxAddToCurrent.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				addToCurrentTime = chckbxAddToCurrent.isSelected();
@@ -228,6 +233,7 @@ public class MainApp {
 		
 		//Button to merge and save video with audio file.
 		JButton btnSaveNoPreview = new JButton("Merge and save");
+		btnSaveNoPreview.setToolTipText("Merge the audio and video files and save to a location");
 		btnSaveNoPreview.setEnabled(false);
 		btnSaveNoPreview.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -247,6 +253,7 @@ public class MainApp {
 		//Opens a JFileChooser to select audio to be used
         //checks to see if there is a video loaded and tells the user to choose one before selecting an audio file
 		JButton btnSelectAudio = new JButton("Select Audio");
+		btnSelectAudio.setToolTipText("Select audio file to add");
 		GridBagConstraints gbc_btnSelectAudio = new GridBagConstraints();
 		gbc_btnSelectAudio.insets = new Insets(0, 0, 5, 0);
 		gbc_btnSelectAudio.gridx = 1;
@@ -354,6 +361,7 @@ public class MainApp {
 
 		//Forward by calling the fast forward function in video controls
 		JButton btnMute = new JButton("Mute");
+		btnMute.setToolTipText("Mute audio");
 		btnMute.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				video.mute();
@@ -362,6 +370,7 @@ public class MainApp {
 		
 		//Forward by calling the fast forward function in video controls
 		JButton btnFwd = new JButton(">>");
+		btnFwd.setToolTipText("Fast forward the video");
 		btnFwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				VideoControls.fastForward(video);
@@ -371,6 +380,7 @@ public class MainApp {
 				
 		//Play/Pause by calling the play/pause function in video controls
 		JButton btnPlay = new JButton("> ||");
+		btnPlay.setToolTipText("Play or pause the video");
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				VideoControls.play(video);
@@ -379,6 +389,7 @@ public class MainApp {
 				
 		//Rewind by calling the rewind function in video controls
 		JButton btnRwd = new JButton("<<");
+		btnRwd.setToolTipText("Rewind the video");
 		btnRwd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				VideoControls.rewind(video);
